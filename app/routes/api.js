@@ -40,6 +40,9 @@ routers.post('/AddMeal',AuthMiddleware,MealController.AddMeal);
 routers.post('/UpdateMeal/:mealID',AuthMiddleware,MealController.UpdateMeal);
 routers.delete('/DeleteMeal/:id',AuthMiddleware,MealController.DeleteMeal);
 routers.get('/MealList',AuthMiddleware,MealController.MealList);
+routers.post('/FilterMeal',AuthMiddleware,MealController.FilterMeal);
+
+
 // routers.get('/CountTask',AuthMiddleware,MealController.CountTask);
 
 
