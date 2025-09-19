@@ -1,6 +1,7 @@
 import express from 'express';
 import * as UserController from  '../controllers/UserController.js';
 import * as MealController from '../controllers/MealController.js';
+import * as ExpenseController from '../controllers/ExpenseController.js';
 import * as DashboardSummaryController from  '../controllers/DashboardSummaryController.js';
 import AuthMiddleware from '../middlewares/AuthMiddleware.js';
 import {VerifyRole} from "../middlewares/RoleMiddleware.js";
@@ -43,7 +44,18 @@ routers.get('/MealList',AuthMiddleware,MealController.MealList);
 routers.post('/FilterMeal',AuthMiddleware,MealController.FilterMeal);
 
 
-// routers.get('/CountTask',AuthMiddleware,MealController.CountTask);
+// Expense [Before Login]
+routers.post('/AddExpense',AuthMiddleware,ExpenseController.AddExpense);
+routers.post('/UpdateExpense/:ID',AuthMiddleware,ExpenseController.UpdateExpense);
+// routers.delete('/DeleteMeal/:id',AuthMiddleware,ExpenseController.DeleteMeal);
+// routers.get('/MealList',AuthMiddleware,ExpenseController.MealList);
+// routers.post('/FilterMeal',AuthMiddleware,ExpenseController.FilterMeal);
+
+
+
+
+
+
 
 
 
