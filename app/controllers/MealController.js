@@ -134,27 +134,73 @@ export const FilterMeal=async (req, res) => {
 
 
 
+// ============Report Part=======================
 
 
-//
-// export const CountTask=async (req, res) => {
-//     try{
-//
-//         let user_id=req.headers['user_id'];
-//         let ObjectID=mongoose.Types.ObjectId;
-//         let user_id_object=new ObjectID(user_id);
-//         let data = await MealModel.aggregate([
-//             {$match:{user_id:user_id_object}},
-//             {$group:{_id:"$status",sum:{$count:{}}}},
-//         ])
-//
-//
-//         return res.status(200).json({status: "success", message: "Task Details successfully", data: data});
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
+export const totalMeals=async (req, res) => {
+    try{
+
+
+        let data = await MealModel.aggregate([
+            {
+                $facet: {
+                    // মোট meal + তারিখ রেঞ্জ
+                    totalMeals: [
+                        {
+                            $group: {
+                                _id: null,
+                                totalMeals: { $sum: "$mealCount" },
+                                fromDate: { $min: "$date" },
+                                toDate: { $max: "$date" }
+                            }
+                        }
+                    ],
+
+                    // user-wise meal + তারিখ রেঞ্জ
+                    userWiseMeals: [
+                        {
+                            $group: {
+                                _id: "$user_id",
+                                totalMeals: { $sum: "$mealCount" },
+                                fromDate: { $min: "$date" },
+                                toDate: { $max: "$date" }
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "_id",
+                                foreignField: "_id",
+                                as: "userInfo"
+                            }
+                        },
+                        { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+                        {
+                            $project: {
+                                _id: 1,
+                                userName: "$userInfo.fullName",
+                                totalMeals: 1,
+                                fromDate: 1,
+                                toDate: 1
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+
+
+
+        return res.status(200).json({status: "success", message: "Task Details successfully",data: data});
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
+
+
 //
 // // ====================Admin Part=======================
 // export const TaskList=async (req, res) => {

@@ -57,88 +57,130 @@ export const DeleteExpense=async (req, res) => {
 }
 
 
-//
-// export const MealList=async (req, res) => {
-//     try{
-//
-//
-//         const data = await MealModel.aggregate([
-//             {
-//                 $lookup: {
-//                     from: "users",
-//                     localField: "user_id",
-//                     foreignField: "_id",
-//                     as: "userInfo"
-//                 }
-//             },
-//             { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
-//             {
-//                 $project: {
-//                     _id: 1,
-//                     date: 1,
-//                     mealCount: 1,
-//                     userName: "$userInfo.fullName"
-//                 }
-//             },
-//             { $sort: { createdAt: -1 } }
-//         ]);
-//
-//         let totalMeals = data.reduce((sum, meal) => sum + meal.mealCount, 0);
-//
-//         return res.status(200).json({status: "success", message: "Meal Details successfully", data: data, totalMeals: totalMeals});
-//
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
-//
-//
-// export const FilterMeal=async (req, res) => {
-//
-//     try{
-//         let reqBody = req.body;
-//
-//         let MatchCondition = {};
-//
-//         // User filter
-//         if (reqBody.userID) {
-//             MatchCondition.user_id = new mongoose.Types.ObjectId(reqBody.userID);
-//         }
-//
-//         // Date filter (meal date)
-//         if (reqBody.fromDate || reqBody.toDate) {
-//             MatchCondition.date = {};
-//
-//             if (reqBody.fromDate) {
-//                 MatchCondition.date.$gte = new Date(reqBody.fromDate);
-//             }
-//             if (reqBody.toDate) {
-//                 let to = new Date(reqBody.toDate);
-//                 to.setHours(23, 59, 59, 999); // দিনের শেষ সময়
-//                 MatchCondition.date.$lte = to;
-//             }
-//         }
-//
-//         // Aggregate query
-//         let data = await MealModel.aggregate([
-//             { $match: MatchCondition },
-//             {$lookup: {from: "users", localField: "user_id", foreignField: "_id", as: "userInfo"}},
-//             { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
-//             {$project: {_id: 1,date: 1,mealCount: 1, userName: "$userInfo.fullName"}},
-//             { $sort: { date: -1 } }
-//         ]);
-//
-//         let totalMeals = data.reduce((sum, meal) => sum + meal.mealCount, 0);
-//
-//         return res.status(200).json({status: "success", message: "Task Filter successfully", data: data, totalMeals: totalMeals});
-//
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
-//
+
+export const ExpenseList=async (req, res) => {
+    try{
+
+
+        const data = await ExpenseModel.aggregate([
+            // Lookup for userID
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userID",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            // Lookup for addedBy
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "addedBy",
+                    foreignField: "_id",
+                    as: "addedByInfo"
+                }
+            },
+
+            // Unwind arrays
+            { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: "$addedByInfo", preserveNullAndEmptyArrays: true } },
+
+            // Project required fields
+            {
+                $project: {
+                    _id: 1,
+                    date: 1,
+                    title: 1,
+                    category: 1,
+                    amount: 1,
+                    UserName: "$userInfo.fullName",
+                    AddedBy: "$addedByInfo.fullName"
+                }
+            },
+
+            // Sort latest first
+            { $sort: { date: -1 } }
+        ]);
+
+        let totalExpense = data.reduce((sum, expense) => sum + expense.amount, 0);
+
+
+
+        return res.status(200).json({status: "success", message: "Meal Details successfully", data: data, totalExpense: totalExpense});
+
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
+export const FilterExpense=async (req, res) => {
+
+    try{
+        let reqBody = req.body;
+
+        let MatchCondition = {};
+
+        // User filter
+        if (reqBody.userID) {
+            MatchCondition.userID = new mongoose.Types.ObjectId(reqBody.userID);
+        }
+
+        // Date filter (expense date)
+        if (reqBody.fromDate || reqBody.toDate) {
+            MatchCondition.date = {};
+
+            if (reqBody.fromDate) {
+                MatchCondition.date.$gte = new Date(reqBody.fromDate);
+            }
+            if (reqBody.toDate) {
+                let to = new Date(reqBody.toDate);
+                to.setHours(23, 59, 59, 999); // দিনের শেষ সময়
+                MatchCondition.date.$lte = to;
+            }
+        }
+
+        // Aggregate query
+        let data = await ExpenseModel.aggregate([
+            { $match: MatchCondition },
+
+            // user info join
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userID",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+
+            {
+                $project: {
+                    _id: 1,
+                    date: 1,
+                    title: 1,
+                    category: 1,
+                    amount: 1,
+                    userName: "$userInfo.fullName"
+                }
+            },
+
+            { $sort: { date: -1 } }
+        ]);
+
+        let totalExpense = data.reduce((sum, expense) => sum + expense.amount, 0);
+
+        return res.status(200).json({status: "success", message: "Task Filter successfully",data: data, totalExpense: totalExpense});
+
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
 
 
 

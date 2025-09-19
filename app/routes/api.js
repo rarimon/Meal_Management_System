@@ -48,12 +48,14 @@ routers.post('/FilterMeal',AuthMiddleware,MealController.FilterMeal);
 routers.post('/AddExpense',AuthMiddleware,ExpenseController.AddExpense);
 routers.post('/UpdateExpense/:ID',AuthMiddleware,ExpenseController.UpdateExpense);
 routers.delete('/DeleteExpense/:id',AuthMiddleware,ExpenseController.DeleteExpense);
-// routers.get('/MealList',AuthMiddleware,ExpenseController.MealList);
-// routers.post('/FilterMeal',AuthMiddleware,ExpenseController.FilterMeal);
+routers.get('/ExpenseList',AuthMiddleware,ExpenseController.ExpenseList);
+routers.post('/FilterExpense',AuthMiddleware,ExpenseController.FilterExpense);
 
+// Report [Before Login]
 
+routers.get('/totalMeals',AuthMiddleware,MealController.totalMeals);
 
-
+// routers.post('/totalMeals',AuthMiddleware,ExpenseController.AddExpense);
 
 
 

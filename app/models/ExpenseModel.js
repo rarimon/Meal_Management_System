@@ -5,6 +5,7 @@ let DataSchema = mongoose.Schema({
     amount: { type: Number, required: true },
     category: { type: String, required: true },
     date: { type: Date, default: Date.now },
+    userID: { type: mongoose.Schema.Types.ObjectId, ref: "users", required: true },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "users", required: true }
 
 },
