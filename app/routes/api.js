@@ -47,7 +47,7 @@ routers.post('/FilterMeal',AuthMiddleware,MealController.FilterMeal);
 // Expense [Before Login]
 routers.post('/AddExpense',AuthMiddleware,ExpenseController.AddExpense);
 routers.post('/UpdateExpense/:ID',AuthMiddleware,ExpenseController.UpdateExpense);
-// routers.delete('/DeleteMeal/:id',AuthMiddleware,ExpenseController.DeleteMeal);
+routers.delete('/DeleteExpense/:id',AuthMiddleware,ExpenseController.DeleteExpense);
 // routers.get('/MealList',AuthMiddleware,ExpenseController.MealList);
 // routers.post('/FilterMeal',AuthMiddleware,ExpenseController.FilterMeal);
 

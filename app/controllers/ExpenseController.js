@@ -11,7 +11,7 @@ export const AddExpense=async (req, res) => {
         reqBody.addedBy=new OBJECTID(UserID);
         let data = await ExpenseModel.create(reqBody);
 
-        return res.status(200).json({status: "success", message: "Meal Add successfully", data: data});
+        return res.status(200).json({status: "success", message: "Expense Add successfully", data: data});
 
     }
     catch (error) {
@@ -23,16 +23,18 @@ export const AddExpense=async (req, res) => {
 export const UpdateExpense=async (req, res) => {
     try{
 
-        let mealID=req.params.mealID;
+        let ExpenseID=req.params.ID;
+        let UserID=req.headers["user_id"];
         let reqBody = req.body;
+        reqBody.addedBy=new OBJECTID(UserID);
 
-        let data=await MealModel.findByIdAndUpdate(mealID,reqBody,{new:true});
+        let data=await ExpenseModel.findByIdAndUpdate(ExpenseID,reqBody,{new:true});
 
         if(!data){
-            return res.status(401).json({status: "Fail", message: "Meal Not Found"});
+            return res.status(401).json({status: "Fail", message: "Expense Not Found"});
         }
 
-        return res.status(200).json({status: "success", message: "Meal updated successfully",data:data});
+        return res.status(200).json({status: "success", message: "Expense updated successfully",data:data});
 
     }
     catch(error){
@@ -40,19 +42,21 @@ export const UpdateExpense=async (req, res) => {
     }
 
 }
-//
-// export const DeleteMeal=async (req, res) => {
-//     try{
-//         let id=req.params.id;
-//         let data=await MealModel.deleteOne({"_id":id});
-//         return res.status(200).json({status: "success", message: "Meal Details successfully", data: data});
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
-//
-//
+
+export const DeleteExpense=async (req, res) => {
+
+    try{
+        let ExpenseID=req.params.id;
+        let data=await ExpenseModel.deleteOne({"_id":ExpenseID});
+
+        return res.status(200).json({status: "success", message: "Meal Details successfully", data: data});
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
 //
 // export const MealList=async (req, res) => {
 //     try{
