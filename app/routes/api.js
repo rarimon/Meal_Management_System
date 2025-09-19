@@ -38,10 +38,9 @@ routers.post('/ProfileUpdateByUser/:UserID',AuthMiddleware,VerifyRole(["admin"])
 // Meal [Before Login]
 routers.post('/AddMeal',AuthMiddleware,MealController.AddMeal);
 routers.post('/UpdateMeal/:mealID',AuthMiddleware,MealController.UpdateMeal);
-// routers.get('/TaskListByStatus/:status',AuthMiddleware,MealController.TaskListByStatus);
+routers.delete('/DeleteMeal/:id',AuthMiddleware,MealController.DeleteMeal);
+routers.get('/MealList',AuthMiddleware,MealController.MealList);
 // routers.get('/CountTask',AuthMiddleware,MealController.CountTask);
-// routers.get('/DeleteTask/:id',AuthMiddleware,MealController.DeleteTask);
-
 
 
 

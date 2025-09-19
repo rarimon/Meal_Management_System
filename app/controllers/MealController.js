@@ -37,31 +37,55 @@ export const UpdateMeal=async (req, res) => {
     }
 
 }
-//
-// export const TaskListByStatus=async (req, res) => {
-//     try{
-//         let status=req.params.status;
-//         let user_id=req.headers['user_id'];
-//         let data=await MealModel.find({"status":status,"user_id":user_id});
-//         return res.status(200).json({status: "success", message: "Task Details successfully", data: data});
-//
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
-//
-// export const DeleteTask=async (req, res) => {
-//     try{
-//         let id=req.params.id;
-//         let user_id=req.headers['user_id'];
-//         let data=await MealModel.deleteOne({"_id":id,"user_id":user_id});
-//         return res.status(200).json({status: "success", message: "Task Details successfully", data: data});
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
+
+export const DeleteMeal=async (req, res) => {
+    try{
+        let id=req.params.id;
+        let data=await MealModel.deleteOne({"_id":id});
+        return res.status(200).json({status: "success", message: "Meal Details successfully", data: data});
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
+
+export const MealList=async (req, res) => {
+    try{
+
+
+        const data = await MealModel.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user_id",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            { $unwind: { path: "$userInfo", preserveNullAndEmptyArrays: true } },
+            {
+                $project: {
+                    _id: 1,
+                    date: 1,
+                    mealCount: 1,
+                    userName: "$userInfo.fullName"
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
+        return res.status(200).json({status: "success", message: "Meal Details successfully", data: data});
+
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
+
 //
 // export const CountTask=async (req, res) => {
 //     try{
