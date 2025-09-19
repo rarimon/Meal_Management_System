@@ -1,6 +1,5 @@
 import MealModel from '../models/MealModel.js';
 import mongoose from "mongoose";
-import {ObjectId} from "mongodb";
 let OBJECTID = mongoose.Types.ObjectId;
 
 export const AddMeal=async (req, res) => {
@@ -18,23 +17,26 @@ export const AddMeal=async (req, res) => {
 
 }
 
-// export const UpdateTaskStatus=async (req, res) => {
-//     try{
-//         let  user_id = req.headers['user_id'];
-//         let id=req.params.id;
-//         let status = req.params.status;
-//         let data=await MealModel.updateOne({"_id":id,"user_id":user_id},{
-//             status:status
-//         })
-//
-//         return res.status(200).json({status: "success", message: "Task updated successfully", data: data});
-//
-//     }
-//     catch(error){
-//         return res.status(200).json({status:"Error",message:error.toString()});
-//     }
-//
-// }
+export const UpdateMeal=async (req, res) => {
+    try{
+
+        let mealID=req.params.mealID;
+        let reqBody = req.body;
+
+        let data=await MealModel.findByIdAndUpdate(mealID,reqBody,{new:true});
+
+        if(!data){
+            return res.status(401).json({status: "Fail", message: "Meal Not Found"});
+        }
+
+        return res.status(200).json({status: "success", message: "Meal updated successfully",data:data});
+
+    }
+    catch(error){
+        return res.status(200).json({status:"Error",message:error.toString()});
+    }
+
+}
 //
 // export const TaskListByStatus=async (req, res) => {
 //     try{
