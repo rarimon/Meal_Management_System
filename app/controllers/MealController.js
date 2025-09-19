@@ -6,11 +6,10 @@ let OBJECTID = mongoose.Types.ObjectId;
 export const AddMeal=async (req, res) => {
 
     try{
-        let user_id = req.headers['user_id'];
+
         let reqBody = req.body;
-        reqBody.user_id = user_id;
         let data = await MealModel.create(reqBody);
-        return res.status(200).json({status: "success", message: "Task created successfully", data: data});
+        return res.status(200).json({status: "success", message: "Meal Add successfully", data: data});
 
     }
     catch (error) {

@@ -11,5 +11,5 @@ let DataSchema = mongoose.Schema({
     }
     )
 
-const MealModel=mongoose.model('tasks', DataSchema);
+const MealModel=mongoose.model('meals', DataSchema);
 export default MealModel;
