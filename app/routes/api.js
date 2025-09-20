@@ -51,11 +51,23 @@ routers.delete('/DeleteExpense/:id',AuthMiddleware,ExpenseController.DeleteExpen
 routers.get('/ExpenseList',AuthMiddleware,ExpenseController.ExpenseList);
 routers.post('/FilterExpense',AuthMiddleware,ExpenseController.FilterExpense);
 
-// Report [Before Login]
-
+// Report Meal [Before Login]
 routers.get('/totalMeals',AuthMiddleware,MealController.totalMeals);
+routers.get('/MealDetails/:userID',AuthMiddleware,MealController.MealDetails);
 
-// routers.post('/totalMeals',AuthMiddleware,ExpenseController.AddExpense);
+
+// Report Expense [Before Login]
+routers.get('/totalExpense',AuthMiddleware,ExpenseController.totalExpense);
+routers.get('/ExpenseDetails/:categoryName',AuthMiddleware,ExpenseController.ExpenseDetails);
+
+
+// Report Dashboard Overview[Before Login]
+routers.get('/dashboarOverview',AuthMiddleware,ExpenseController.dashboarOverview);
+
+routers.get('/AllReport',AuthMiddleware,ExpenseController.AllReport);
+
+
+
 
 
 

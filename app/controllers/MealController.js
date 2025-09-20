@@ -199,90 +199,48 @@ export const totalMeals=async (req, res) => {
 }
 
 
+export const MealDetails=async (req, res) => {
+    try{
 
+        let UserID = req.params.userID;
 
-//
-// // ====================Admin Part=======================
-// export const TaskList=async (req, res) => {
-//     try{
-//
-//         let data=await MealModel.find();
-//         return res.status(200).json({status: "success", message: "Task Details successfully", data: data});
-//
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
-//
-//
-// export const TotalTask=async (req, res) => {
-//     try{
-//
-//         let data = await MealModel.aggregate([
-//             {$group:{_id:"$status",sum:{$count:{}}}},
-//         ])
-//
-//
-//         return res.status(200).json({status: "success", message: "Task Details successfully", data: data});
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
-//
-//
-// export const FilterTask=async (req, res) => {
-//
-//     try{
-//         let reqBody = req.body;
-//
-//         let MatchCondition = {};
-//
-//         if (reqBody.userID) {
-//             MatchCondition.user_id = new ObjectId(reqBody.userID);
-//         }
-//
-//         if (reqBody.status) {
-//             MatchCondition.status = reqBody.status;
-//         }
-//
-//
-//         // Date filtering
-//         if (reqBody.fromDate || reqBody.toDate) {
-//             MatchCondition.createdAt = {};
-//
-//             if (reqBody.fromDate) {
-//                 MatchCondition.createdAt.$gte = new Date(reqBody.fromDate);
-//             }
-//             if (reqBody.toDate) {
-//                 let to = new Date(reqBody.toDate);
-//                 to.setHours(23, 59, 59, 999); // দিনের শেষ সময়
-//                 MatchCondition.createdAt.$lte = to;
-//             }
-//         }
-//
-//
-//
-//         let data = await MealModel.aggregate([
-//             { $match: MatchCondition },
-//             {
-//                 $facet: {
-//                     allTask: [{ $sort: { createdAt: -1 } }],
-//                     totalCount: [{ $count: "total" }],
-//                     statusCount: [{ $group: { _id: "$status", count: { $sum: 1 }}}]
-//                 }
-//             }
-//         ]);
-//
-//
-//
-//         return res.status(200).json({status: "success", message: "Task Filter successfully", data: data});
-//
-//     }
-//     catch(error){
-//         return  res.status(200).json({status: "Error", message: error.toString()});
-//     }
-// }
+        let data = await MealModel.aggregate([
+            {
+                $match: { user_id: new mongoose.Types.ObjectId(UserID) }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user_id",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            { $unwind: "$userInfo" },
+            {
+                $group: {
+                    _id: "$user_id",
+                    userName: { $first: "$userInfo.fullName" },
+                    totalMeals: { $sum: "$mealCount" },
+                    meals: {
+                        $push: {
+                            _id: "$_id",
+                            date: "$date",
+                            mealCount: "$mealCount",
+                            userName: "$userInfo.fullName",
+                            createdAt: "$createdAt",
+                            updatedAt: "$updatedAt"
+                        }
+                    }
+                }
+            }
+        ]);
+
+        return res.status(200).json({status: "success", message: "Task Details successfully",data: data});
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
 
 

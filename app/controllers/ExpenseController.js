@@ -1,6 +1,7 @@
 import MealModel from '../models/MealModel.js';
 import mongoose from "mongoose";
 import ExpenseModel from "../models/ExpenseModel.js";
+import UserModel from "../models/UserModel.js";
 let OBJECTID = mongoose.Types.ObjectId;
 
 export const AddExpense=async (req, res) => {
@@ -181,6 +182,247 @@ export const FilterExpense=async (req, res) => {
     }
 }
 
+
+
+
+// ==============Report Section=================
+
+export const totalExpense=async (req, res) => {
+    try{
+
+
+        let expenses = await ExpenseModel.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    total: { $sum: "$amount" },
+                    fromDate: { $min: "$date" },
+                    toDate: { $max: "$date" }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    category: "$_id",
+                    fromDate: { $dateToString: { format: "%Y-%m-%d", date: "$fromDate" } },
+                    toDate: { $dateToString: { format: "%Y-%m-%d", date: "$toDate" } },
+                    total: 1
+                }
+            }
+        ]);
+
+        // totalExpense
+        let totalExpense = expenses.reduce((acc, curr) => acc + curr.total, 0);
+
+
+        return res.status(200).json({status: "success", message: "Expense Details successfully",data: expenses,totalExpense:totalExpense});
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
+export const ExpenseDetails=async (req, res) => {
+    try{
+        let categoryName = req.params.categoryName; // URL থেকে category নাম/ID নাও
+
+        let expenses = await ExpenseModel.aggregate([
+            { $match: { category: categoryName } },  // শুধু ঐ category
+            {
+                $group: {
+                    _id: "$category",
+                    total: { $sum: "$amount" },
+                    fromDate: { $min: "$date" },
+                    toDate: { $max: "$date" },
+                    allData: { $push: "$$ROOT" }  // সব expense document
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    category: "$_id",
+                    fromDate: { $dateToString: { format: "%Y-%m-%d", date: "$fromDate" } },
+                    toDate: { $dateToString: { format: "%Y-%m-%d", date: "$toDate" } },
+                    total: 1,
+                    allData: 1
+                }
+            }
+        ]);
+
+
+        return res.status(200).json({status: "success", message: "Expense Details successfully",data: expenses,totalExpense:totalExpense});
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+
+export const dashboarOverview=async (req, res) => {
+    try{
+        // 1️⃣ Total Meals
+        let totalMealsAgg = await MealModel.aggregate([
+            { $group: { _id: null, totalMeals: { $sum: "$mealCount" } } }
+        ]);
+        let totalMeals = totalMealsAgg[0]?.totalMeals || 0;
+
+        // 2️⃣ Total Expenses & Category-wise
+        let expenseAgg = await ExpenseModel.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    amount: { $sum: "$amount" }
+                }
+            }
+        ]);
+        let totalExpenses = expenseAgg.reduce((acc, curr) => acc + curr.amount, 0);
+        let categoryWiseExpenses = expenseAgg.map(c => ({
+            category: c._id,
+            amount: c.amount
+        }));
+
+        // 3️⃣ Per Meal Cost
+        let perMealCost = totalMeals > 0 ? Math.round(totalExpenses / totalMeals) : 0;
+
+        // 4️⃣ Total Members
+        let totalMembers = await UserModel.countDocuments();
+
+        // 5️⃣ Member-wise Meals + Cost
+        let memberWiseMealsAgg = await MealModel.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user_id",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            { $unwind: "$userInfo" },
+            {
+                $group: {
+                    _id: "$user_id",
+                    member: { $first: "$userInfo.fullName" },
+                    meals: { $sum: "$mealCount" }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    member: 1,
+                    meals: 1,
+                    cost: { $multiply: ["$meals", perMealCost] } // Mil rate অনুযায়ী cost
+                }
+            }
+        ]);
+
+      return res.status(200).json({
+            status: "success",
+            message: "Dashboard Overview",
+            data: {
+                totalMeals,
+                totalExpenses,
+                perMealCost,
+                totalMembers,
+                memberWiseMeals: memberWiseMealsAgg,
+                categoryWiseExpenses
+            }
+        });
+
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
+
+export const AllReport=async (req, res) => {
+    try{
+        let { fromDate, toDate } = req.body;
+
+        // date filter
+        let matchMeals = {};
+        let matchExpenses = {};
+        if (fromDate && toDate) {
+            let start = new Date(fromDate);
+            let end = new Date(toDate);
+            end.setHours(23, 59, 59, 999);
+
+            matchMeals.date = { $gte: start, $lte: end };
+            matchExpenses.date = { $gte: start, $lte: end };
+        }
+
+        // 1️⃣ Total Meals in date range
+        let totalMealsAgg = await MealModel.aggregate([
+            { $match: matchMeals },
+            { $group: { _id: null, totalMeals: { $sum: "$mealCount" } } }
+        ]);
+        let totalMeals = totalMealsAgg[0]?.totalMeals || 0;
+
+        // 2️⃣ Total Expenses & Category-wise in date range
+        let expenseAgg = await ExpenseModel.aggregate([
+            { $match: matchExpenses },
+            { $group: { _id: "$category", amount: { $sum: "$amount" } } }
+        ]);
+        let totalExpenses = expenseAgg.reduce((acc, curr) => acc + curr.amount, 0);
+        let categoryWiseExpenses = expenseAgg.map(c => ({
+            category: c._id,
+            amount: c.amount
+        }));
+
+        // 3️⃣ Per Meal Cost
+        let perMealCost = totalMeals > 0 ? Math.round(totalExpenses / totalMeals) : 0;
+
+        // 4️⃣ Total Members
+        let totalMembers = await UserModel.countDocuments();
+
+        // 5️⃣ Member-wise Meals + Cost
+        let memberWiseMealsAgg = await MealModel.aggregate([
+            { $match: matchMeals },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user_id",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            { $unwind: "$userInfo" },
+            {
+                $group: {
+                    _id: "$user_id",
+                    member: { $first: "$userInfo.fullName" },
+                    meals: { $sum: "$mealCount" }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    member: 1,
+                    meals: 1,
+                    cost: { $multiply: ["$meals", perMealCost] }
+                }
+            }
+        ]);
+
+      return   res.status(200).json({
+            status: "success",
+            message: "Dashboard Date Range Report",
+            data: {
+                fromDate: fromDate || null,
+                toDate: toDate || null,
+                totalMeals,
+                totalExpenses,
+                perMealCost,
+                totalMembers,
+                memberWiseMeals: memberWiseMealsAgg,
+                categoryWiseExpenses
+            }
+        });
+    }
+    catch(error){
+        return  res.status(200).json({status: "Error", message: error.toString()});
+    }
+}
 
 
 
