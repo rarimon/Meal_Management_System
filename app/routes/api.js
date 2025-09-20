@@ -2,7 +2,6 @@ import express from 'express';
 import * as UserController from  '../controllers/UserController.js';
 import * as MealController from '../controllers/MealController.js';
 import * as ExpenseController from '../controllers/ExpenseController.js';
-import * as DashboardSummaryController from  '../controllers/DashboardSummaryController.js';
 import AuthMiddleware from '../middlewares/AuthMiddleware.js';
 import {VerifyRole} from "../middlewares/RoleMiddleware.js";
 
@@ -25,15 +24,6 @@ routers.get('/UserList',AuthMiddleware,VerifyRole(["admin"]),UserController.User
 routers.post('/DeleteUser/:UserID',AuthMiddleware,VerifyRole(["admin"]),UserController.DeleteUser);
 routers.post('/UpdateUserRole/:UserID',AuthMiddleware,VerifyRole(["admin"]),UserController.UpdateUserRole);
 routers.post('/ProfileUpdateByUser/:UserID',AuthMiddleware,VerifyRole(["admin"]),UserController.ProfileUpdateByUser);
-
-// // Admin [Task After Login]
-// routers.get('/TaskList',AuthMiddleware,VerifyRole(["admin"]),TaskController.TaskList);
-// routers.get('/TotalTask',AuthMiddleware,VerifyRole(["admin"]),TaskController.TotalTask);
-// routers.post('/FilterTask',AuthMiddleware,VerifyRole(["admin"]),TaskController.FilterTask);
-//
-// // Admin [Dashboard Summary]
-// routers.get('/TaskSummary',AuthMiddleware,VerifyRole(["admin"]),DashboardSummaryController.TaskSummary);
-//
 
 
 // Meal [Before Login]
@@ -65,11 +55,6 @@ routers.get('/ExpenseDetails/:categoryName',AuthMiddleware,ExpenseController.Exp
 routers.get('/dashboarOverview',AuthMiddleware,ExpenseController.dashboarOverview);
 
 routers.get('/AllReport',AuthMiddleware,ExpenseController.AllReport);
-
-
-
-
-
 
 
 
